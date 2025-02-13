@@ -18,16 +18,18 @@ namespace WFXTEA
             if ((!File.Exists(filename) || Path.GetExtension(filename) != ".xml"))
                 End(@"File format must be "".xml""!");
 
-            string result;
             byte[] data = File.ReadAllBytes(filename);
 
             if (data[0] == '<')
             {
-                result = XElement.Parse(Encoding.UTF8.GetString(data)).ToString();
+                byte[] res;
+                File.Move(filename, filename + ".backup");
+                File.WriteAllBytes(args![0], XTEA.Encrypt(Encoding.UTF8.GetString(data)));
             }
             else if (data[0] == '^' && data[1] == '$' && data[2] == 'x')
             {
-                result = XTEA.Decrypt(data);
+                File.Move(filename, filename + ".backup");
+                File.WriteAllText(args![0], XTEA.Decrypt(data));
             }
             else
             {
@@ -35,9 +37,7 @@ namespace WFXTEA
                 return;
             }
 
-            File.Move(filename, filename + ".backup");
-            File.WriteAllText(args![0], result);
-            Console.WriteLine("Complete!");
+            Console.WriteLine("Done!");
         }
 
         static void End(string text)
